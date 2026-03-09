@@ -125,4 +125,5 @@ export {
     multipleItemsOrderPayload,
     invalidOrderPayloads,
     expectedOrderResponse,
+    updateOrderPayload,
 }
