@@ -12,9 +12,6 @@ process.env.DB_USER = process.env.DB_USER || 'postgres';
 process.env.DB_PASSWORD = process.env.DB_PASSWORD || 'postgres';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_secret_key';
 
-// Set timeout padrão
-jest.setTimeout(10000);
-
 // Suppress console logs durante testes (opcional)
 // global.console.error = jest.fn();
 // global.console.warn = jest.fn();

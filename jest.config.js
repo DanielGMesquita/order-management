@@ -2,6 +2,7 @@ export default {
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.js'],
   setupFiles: ['<rootDir>/jest.setup.js'],
+  transform: {},
   collectCoverageFrom: [
     'src/**/*.js',
     '!src/app.js',

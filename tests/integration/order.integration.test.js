@@ -4,18 +4,18 @@
  */
 
 import request from 'supertest';
-import { app } from '../../src/app';
-import { authenticate, sync, close } from '../../src/config/database';
-import { destroy } from '../../src/models/Order';
-import { destroy as _destroy } from '../../src/models/Item';
-import { validOrderPayload, validOrderPayload2, multipleItemsOrderPayload, invalidOrderPayloads, updateOrderPayload } from '../fixtures/orderFixtures';
+import { app } from '../../src/app.js';
+import db from '../../src/config/database.js';
+import Order from '../../src/models/Order.js';
+import Item from '../../src/models/Item.js';
+import { validOrderPayload, validOrderPayload2, multipleItemsOrderPayload, invalidOrderPayloads, updateOrderPayload } from '../fixtures/orderFixtures.js';
 
 describe('Order API - Integration Tests', () => {
   // Setup e Teardown
   beforeAll(async () => {
     try {
-      await authenticate();
-      await sync({ alter: true });
+      await db.authenticate();
+      await db.sync({ alter: true });
     } catch (error) {
       console.error('Erro ao conectar ao banco de dados:', error.message);
       throw error;
@@ -23,13 +23,13 @@ describe('Order API - Integration Tests', () => {
   });
 
   afterAll(async () => {
-    await close();
+    await db.close();
   });
 
   beforeEach(async () => {
     // Limpa dados antes de cada teste
-    await _destroy({ where: {} });
-    await destroy({ where: {} });
+    await Item.destroy({ where: {} });
+    await Order.destroy({ where: {} });
   });
 
   // ========== TESTES POST /order ==========
