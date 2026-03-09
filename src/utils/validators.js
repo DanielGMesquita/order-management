@@ -58,6 +58,18 @@ const validateCreateOrder = [
 ];
 
 /**
+ * Validação de parâmetro de ID do pedido
+ */
+const validateOrderId = [
+  param('orderId')
+    .trim()
+    .notEmpty()
+    .withMessage('orderId é obrigatório')
+    .isString()
+    .withMessage('orderId deve ser uma string'),
+];
+
+/**
  * Middleware para lidar com erros de validação
  */
 const handleValidationErrors = (req, res, next) => {
@@ -75,4 +87,4 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-export { validateCreateOrder, handleValidationErrors }; 
+export { validateCreateOrder, validateOrderId, handleValidationErrors }; 
