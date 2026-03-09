@@ -6,7 +6,7 @@
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import db from '../../src/config/database.js';
-import auth from '../../src/middleware/auth.js';
+import { generateToken } from '../../src/middleware/auth.js';
 import Order from '../../src/models/Order.js';
 import Item from '../../src/models/Item.js';
 
@@ -88,7 +88,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve retornar 403 quando Authorization header está mal formatado', async () => {
-      const token = auth.generateToken({ userId: '123' });
+      const token = generateToken({ userId: '123' });
 
       const response = await request(app)
         .post('/order')
@@ -110,7 +110,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve aceitar requisição com token válido', async () => {
-      const token = auth.generateToken({
+      const token = generateToken({
         userId: 'user123',
         role: 'admin',
       });
@@ -127,7 +127,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve permitir acesso apenas com role específico', async () => {
-      const userToken = auth.generateToken({
+      const userToken = generateToken({
         userId: 'user456',
         role: 'user', // Não é admin
       });
@@ -144,7 +144,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve permitir acesso com role admin', async () => {
-      const adminToken = auth.generateToken({
+      const adminToken = generateToken({
         userId: 'admin123',
         role: 'admin',
       });
@@ -167,7 +167,7 @@ describe('Order API - Authentication Integration Tests', () => {
         role: 'admin',
       };
 
-      const token = auth.generateToken(tokenPayload);
+      const token = generateToken(tokenPayload);
 
       const response = await request(app)
         .post('/order')
@@ -201,7 +201,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve aceitar requisição com token válido', async () => {
-      const token = auth.generateToken({ userId: 'user123' });
+      const token = generateToken({ userId: 'user123' });
 
       const response = await request(app)
         .get('/order/list')
@@ -232,7 +232,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve aceitar requisição com token válido', async () => {
-      const token = auth.generateToken({ userId: 'user123' });
+      const token = generateToken({ userId: 'user123' });
 
       const response = await request(app)
         .get('/order/NONEXISTENT')
@@ -266,7 +266,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve aceitar requisição com token válido', async () => {
-      const token = auth.generateToken({ userId: 'user123', role: 'admin' });
+      const token = generateToken({ userId: 'user123', role: 'admin' });
 
       const response = await request(app)
         .put('/order/NONEXISTENT')
@@ -297,7 +297,7 @@ describe('Order API - Authentication Integration Tests', () => {
     });
 
     test('deve aceitar requisição com token válido', async () => {
-      const token = auth.generateToken({ userId: 'user123', role: 'admin' });
+      const token = generateToken({ userId: 'user123', role: 'admin' });
 
       const response = await request(app)
         .delete('/order/NONEXISTENT')
@@ -312,7 +312,7 @@ describe('Order API - Authentication Integration Tests', () => {
   // ========== TESTES DE REFRESH TOKEN (FUTURO) ==========
   describe('POST /auth/refresh - Gerar Novo Token', () => {
     test('deve retornar novo token quando fornecido token válido', async () => {
-      const token = auth.generateToken({
+      const token = generateToken({
         userId: 'user123',
         email: 'user@test.com',
       });

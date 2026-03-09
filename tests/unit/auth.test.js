@@ -3,7 +3,7 @@
  * Testa o middleware de autenticação JWT
  */
 
-import auth from '../../src/middleware/auth.js';
+import { authenticateToken, generateToken } from '../../src/middleware/auth.js';
 
 describe('JWT Authentication - Unit Tests', () => {
   const testPayload = {
@@ -15,7 +15,7 @@ describe('JWT Authentication - Unit Tests', () => {
   // ========== TESTES DE GERAÇÃO DE TOKEN ==========
   describe('generateToken', () => {
     test('deve gerar um token JWT válido', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
@@ -23,8 +23,8 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve gerar tokens diferentes para chamadas diferentes', () => {
-      const token1 = auth.generateToken(testPayload);
-      const token2 = auth.generateToken(testPayload);
+      const token1 = generateToken(testPayload);
+      const token2 = generateToken(testPayload);
       
       // Os tokens podem ser diferentes por causa do timestamp 'iat'
       expect(token1).toBeDefined();
@@ -33,7 +33,7 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve incluir o payload no token', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       
       // Decodificar e verificar
       const parts = token.split('.');
@@ -45,7 +45,7 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve incluir expiração no token', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       
       const parts = token.split('.');
       const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
@@ -55,7 +55,7 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve retornar string não vazia', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       
       expect(token).toBeTruthy();
       expect(token.length).toBeGreaterThan(0);
@@ -88,7 +88,7 @@ describe('JWT Authentication - Unit Tests', () => {
     test('deve retornar 401 quando token não é fornecido', () => {
       req.headers.authorization = undefined;
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
@@ -101,7 +101,7 @@ describe('JWT Authentication - Unit Tests', () => {
     test('deve retornar 401 quando authorization header está vazio', () => {
       req.headers.authorization = '';
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
@@ -111,10 +111,10 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve extrair token corretamente do header Bearer', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       req.headers.authorization = `Bearer ${token}`;
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toBeDefined();
@@ -126,7 +126,7 @@ describe('JWT Authentication - Unit Tests', () => {
     test('deve retornar 403 quando token é inválido', () => {
       req.headers.authorization = 'Bearer token_invalido';
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe('JWT Authentication - Unit Tests', () => {
     test('deve retornar 403 quando token está vazio', () => {
       req.headers.authorization = 'Bearer ';
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalled();
@@ -146,10 +146,10 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve retornar 403 quando authorization format está incorreto', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       req.headers.authorization = token; // Sem "Bearer"
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       // Deve falhar porque espera "Bearer token"
       expect(res.status).toHaveBeenCalledWith(403);
@@ -157,10 +157,10 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve atribuir user ao request quando token é válido', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       req.headers.authorization = `Bearer ${token}`;
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(req.user).toBeDefined();
       expect(req.user).toHaveProperty('userId');
@@ -169,10 +169,10 @@ describe('JWT Authentication - Unit Tests', () => {
     });
 
     test('deve chamar next() apenas quando token é válido', () => {
-      const token = auth.generateToken(testPayload);
+      const token = generateToken(testPayload);
       req.headers.authorization = `Bearer ${token}`;
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(next).toHaveBeenCalledWith();
@@ -184,7 +184,7 @@ describe('JWT Authentication - Unit Tests', () => {
       const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjMiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE2MDAwMDAwMDB9.INVALID';
       req.headers.authorization = `Bearer ${expiredToken}`;
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(403);
       expect(next).not.toHaveBeenCalled();
@@ -198,10 +198,10 @@ describe('JWT Authentication - Unit Tests', () => {
         permissions: ['read', 'write'],
       };
 
-      const token = auth.generateToken(customPayload);
+      const token = generateToken(customPayload);
       req.headers.authorization = `Bearer ${token}`;
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(req.user.id).toBe(customPayload.id);
       expect(req.user.username).toBe(customPayload.username);
@@ -211,7 +211,7 @@ describe('JWT Authentication - Unit Tests', () => {
     test('deve retornar mensagem de erro apropriada na resposta', () => {
       req.headers.authorization = 'Bearer invalid_token';
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       const responseBody = res.json.mock.calls[0][0];
       expect(responseBody).toHaveProperty('success', false);
@@ -224,14 +224,14 @@ describe('JWT Authentication - Unit Tests', () => {
   describe('Token Lifecycle', () => {
     test('deve gerar token, verificar e extrair payload', (done) => {
       const payload = { userId: '456', email: 'user@test.com' };
-      const token = auth.generateToken(payload);
+      const token = generateToken(payload);
 
       // Mock de request/response
       const req = { headers: { authorization: `Bearer ${token}` } };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const next = jest.fn();
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user.userId).toBe(payload.userId);
@@ -241,7 +241,7 @@ describe('JWT Authentication - Unit Tests', () => {
 
     test('deve rejeitar token modificado', () => {
       const payload = { userId: '789', role: 'user' };
-      const token = auth.generateToken(payload);
+      const token = generateToken(payload);
 
       // Modificar token (corromper a assinatura)
       const parts = token.split('.');
@@ -251,7 +251,7 @@ describe('JWT Authentication - Unit Tests', () => {
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const next = jest.fn();
 
-      auth.authenticateToken(req, res, next);
+      authenticateToken(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(403);
       expect(next).not.toHaveBeenCalled();
