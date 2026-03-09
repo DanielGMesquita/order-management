@@ -34,22 +34,14 @@ describe('Order API - Authentication Integration Tests', () => {
 
   // ========== TESTES SEM MIDDLEWARE (ROTAS ATUAIS) ==========
   describe('Rotas Sem Autenticação (Atuais)', () => {
-    test('POST /order deve estar acessível sem token', async () => {
-      const response = await request(app)
-        .post('/order')
-        .set('Content-Type', 'application/json')
-        .send({
-          numeroPedido: 'TEST001',
-          valorTotal: 100,
-          dataCriacao: new Date().toISOString(),
-          items: [{ idItem: '1', quantidadeItem: 1, valorItem: 100 }],
-        });
-
-      expect([201, 500]).toContain(response.status); // 201 ou erro de BD
-    });
-
     test('GET /order/list deve estar acessível sem token', async () => {
       const response = await request(app).get('/order/list');
+
+      expect([200, 500]).toContain(response.status); // 200 ou erro de BD
+    });
+
+    test('GET /order/:orderId deve estar acessível sem token', async () => {
+      const response = await request(app).get('/order/TEST001');
 
       expect([200, 500]).toContain(response.status); // 200 ou erro de BD
     });
