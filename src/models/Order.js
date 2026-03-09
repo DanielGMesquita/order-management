@@ -15,7 +15,7 @@ const Order = db.sequelize.define('Order', {
     comment: 'Identificador único do pedido',
   },
   value: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.INTEGER,
     allowNull: false,
     comment: 'Valor total do pedido',
     validate: {

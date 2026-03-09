@@ -43,7 +43,7 @@ const Item = db.sequelize.define('Item', {
         comment: 'Quantidade do produto',
     },
     price: {
-        type: DataTypes.DECIMAL(10, 2),
+        type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
         min: {
