@@ -4,10 +4,10 @@
  */
 
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import db from '../config/database.js';
 import Order from './Order.js';
 
-const Item = sequelize.define('Item', {
+const Item = db.sequelize.define('Item', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -19,7 +19,7 @@ const Item = sequelize.define('Item', {
         allowNull: false,
         references: {
         model: Order,
-        key: 'orderId',
+        key: 'order_id',
         },
         comment: 'Referência ao pedido',
     },
@@ -62,14 +62,14 @@ const Item = sequelize.define('Item', {
 
 //Relação entre Item e Order
 Order.hasMany(Item, {
-    foreignKey: 'orderId',
+    foreignKey: 'order_id',
     as: 'items',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
 
 Item.belongsTo(Order, {
-    foreignKey: 'orderId',
+    foreignKey: 'order_id',
     as: 'order',
 })
 

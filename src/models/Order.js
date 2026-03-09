@@ -4,9 +4,9 @@
  */
 
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import db from '../config/database.js';
 
-const Order = sequelize.define('Order', {
+const Order = db.sequelize.define('Order', {
   orderId: {
     type: DataTypes.STRING,
     primaryKey: true,
