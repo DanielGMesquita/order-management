@@ -107,3 +107,90 @@ export const getOrder = async (req, res) => {
     });
   }
 };
+
+/**
+ * Atualiza um pedido
+ * PUT /order/:orderId
+ */
+export const updateOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { valorTotal, dataCriacao, items } = req.body;
+
+    // Verifica se o pedido existe
+    const order = await Order.findByPk(orderId);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: `Pedido ${orderId} não encontrado`,
+      });
+    }
+
+    // Atualiza dados do pedido
+    const updateData = {};
+    if (valorTotal !== undefined) updateData.value = valorTotal;
+    if (dataCriacao !== undefined) updateData.creationDate = new Date(dataCriacao);
+
+    await order.update(updateData);
+
+    // Atualiza itens se fornecido
+    if (items && Array.isArray(items)) {
+      // Remove itens existentes
+      await Item.destroy({ where: { orderId } });
+      // Cria novos itens
+      const itemsData = mapItemsInputToDatabase(items, orderId);
+      await Item.bulkCreate(itemsData);
+    }
+
+    // Busca pedido atualizado com itens
+    const updatedOrder = await Order.findByPk(orderId, {
+      include: [{ model: Item, as: 'items' }],
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Pedido atualizado com sucesso',
+      data: mapOrderDatabaseToOutput(updatedOrder),
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar pedido:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao atualizar pedido',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+/**
+ * Deleta um pedido
+ * DELETE /order/:orderId
+ */
+export const deleteOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findByPk(orderId);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: `Pedido ${orderId} não encontrado`,
+      });
+    }
+
+    // Deleta itens associados e o pedido
+    await order.destroy();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Pedido deletado com sucesso',
+    });
+  } catch (error) {
+    console.error('Erro ao deletar pedido:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao deletar pedido',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
