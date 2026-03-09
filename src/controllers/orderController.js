@@ -1,38 +1,48 @@
 import Order from '../models/Order.js';
 import Item from '../models/Item.js';
+import { mapOrderInputToDatabase, mapItemsInputToDatabase } from '../utils/mappers.js';
 
+/**
+ * Cria um novo pedido
+ * POST /order
+ */
 export const createOrder = async (req, res) => {
   try {
-    const { orderId, value, items } = req.body;
+    const { numeroPedido, valorTotal, dataCriacao, items } = req.body;
 
-    // Cria o pedido
-    const order = await Order.create({ orderId, value });
-
-    // Cria os itens associados ao pedido
-    const createdItems = await Promise.all(items.map(async (item) => {
-      return await Item.create({
-        orderId: order.orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
+    // Verifica se o pedido já existe
+    const existingOrder = await Order.findByPk(numeroPedido);
+    if (existingOrder) {
+      return res.status(409).json({
+        success: false,
+        message: `Pedido com número ${numeroPedido} já existe`,
       });
-    }));
+    }
 
-    res.status(201).json({
+    // Mapeia dados de entrada
+    const orderData = mapOrderInputToDatabase({ numeroPedido, valorTotal, dataCriacao });
+    const itemsData = mapItemsInputToDatabase(items, numeroPedido);
+
+    // Cria pedido e itens
+    const order = await Order.create(orderData);
+    await Item.bulkCreate(itemsData);
+
+    // Busca pedido com itens
+    const createdOrder = await Order.findByPk(numeroPedido, {
+      include: [{ model: Item, as: 'items' }],
+    });
+
+    return res.status(201).json({
+      success: true,
       message: 'Pedido criado com sucesso',
-      order: {
-        orderId: order.orderId,
-        value: order.value,
-        creationDate: order.creationDate,
-        items: createdItems,
-      },
+      data: createdOrder,
     });
   } catch (error) {
     console.error('Erro ao criar pedido:', error);
-    res.status(500).json({ message: 'Erro ao criar pedido', error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao criar pedido',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
-};
-
-export default {
-  createOrder,
 };
