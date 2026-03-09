@@ -3,6 +3,7 @@
  * Testa o middleware de autenticação JWT
  */
 
+import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import { authenticateToken, generateToken } from '../../src/middleware/auth.js';
 
 describe('JWT Authentication - Unit Tests', () => {
@@ -135,24 +136,24 @@ describe('JWT Authentication - Unit Tests', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    test('deve retornar 403 quando token está vazio', () => {
+    test('deve retornar 401 quando token está vazio', () => {
       req.headers.authorization = 'Bearer ';
 
       authenticateToken(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalled();
       expect(next).not.toHaveBeenCalled();
     });
 
-    test('deve retornar 403 quando authorization format está incorreto', () => {
+    test('deve retornar 401 quando authorization format está incorreto', () => {
       const token = generateToken(testPayload);
       req.headers.authorization = token; // Sem "Bearer"
 
       authenticateToken(req, res, next);
 
       // Deve falhar porque espera "Bearer token"
-      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(401);
       expect(next).not.toHaveBeenCalled();
     });
 

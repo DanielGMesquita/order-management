@@ -3,6 +3,7 @@ export default {
   testMatch: ['**/tests/**/*.test.js'],
   setupFiles: ['<rootDir>/jest.setup.js'],
   transform: {},
+  injectGlobals: true,
   collectCoverageFrom: [
     'src/**/*.js',
     '!src/app.js',

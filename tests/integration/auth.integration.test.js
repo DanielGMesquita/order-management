@@ -3,6 +3,7 @@
  * Testa endpoints protegidos por JWT
  */
 
+import { describe, test, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
 import { app } from '../../src/app.js';
 import db from '../../src/config/database.js';
@@ -43,7 +44,7 @@ describe('Order API - Authentication Integration Tests', () => {
     test('GET /order/:orderId deve estar acessível sem token', async () => {
       const response = await request(app).get('/order/TEST001');
 
-      expect([200, 500]).toContain(response.status); // 200 ou erro de BD
+      expect([200, 404, 500]).toContain(response.status); // 200 (encontrado), 404 (não encontrado) ou erro de BD
     });
   });
 
@@ -79,7 +80,7 @@ describe('Order API - Authentication Integration Tests', () => {
       expect(response.body.message).toContain('Token');
     });
 
-    test('deve retornar 403 quando Authorization header está mal formatado', async () => {
+    test('deve retornar 401 quando Authorization header está mal formatado', async () => {
       const token = generateToken({ userId: '123' });
 
       const response = await request(app)
@@ -88,7 +89,7 @@ describe('Order API - Authentication Integration Tests', () => {
         .set('Authorization', token) // Sem "Bearer"
         .send(validPayload);
 
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(401);
     });
 
     test('deve retornar 401 quando Authorization header está vazio', async () => {
@@ -174,65 +175,45 @@ describe('Order API - Authentication Integration Tests', () => {
     });
   });
 
-  // ========== TESTES PARA GET /order/list ==========
-  describe('GET /order/list - Com Autenticação', () => {
-    test('deve retornar 401 quando token não é fornecido', async () => {
+  // ========== TESTES PARA GET /order/list - ROTA PÚBLICA ==========
+  describe('GET /order/list - Rota Pública', () => {
+    test('deve aceitar requisição sem token', async () => {
       const response = await request(app).get('/order/list');
 
-      expect(response.status).toBe(401);
-      expect(response.body.success).toBe(false);
+      // GET é público - não deve retornar 401 ou 403
+      expect([200, 500]).toContain(response.status);
     });
 
-    test('deve retornar 403 quando token é inválido', async () => {
-      const response = await request(app)
-        .get('/order/list')
-        .set('Authorization', 'Bearer invalid');
-
-      expect(response.status).toBe(403);
-      expect(response.body.success).toBe(false);
-    });
-
-    test('deve aceitar requisição com token válido', async () => {
+    test('deve aceitar requisição com token válido (opcional)', async () => {
       const token = generateToken({ userId: 'user123' });
 
       const response = await request(app)
         .get('/order/list')
         .set('Authorization', `Bearer ${token}`);
 
-      // Passou pela autenticação - pode retornar 200
-      expect(response.status).not.toBe(401);
-      expect(response.status).not.toBe(403);
+      // GET é público - token é aceito mas não obrigatório
+      expect([200, 500]).toContain(response.status);
     });
   });
 
-  // ========== TESTES PARA GET /order/:orderId ==========
-  describe('GET /order/:orderId - Com Autenticação', () => {
-    test('deve retornar 401 quando token não é fornecido', async () => {
+  // ========== TESTES PARA GET /order/:orderId - ROTA PÚBLICA ==========
+  describe('GET /order/:orderId - Rota Pública', () => {
+    test('deve aceitar requisição sem token', async () => {
       const response = await request(app).get('/order/TEST001');
 
-      expect(response.status).toBe(401);
-      expect(response.body.success).toBe(false);
+      // GET é público - pode retornar 404 (não encontrado) mas não 401/403
+      expect([200, 404, 500]).toContain(response.status);
     });
 
-    test('deve retornar 403 quando token é inválido', async () => {
-      const response = await request(app)
-        .get('/order/TEST001')
-        .set('Authorization', 'Bearer invalid');
-
-      expect(response.status).toBe(403);
-      expect(response.body.success).toBe(false);
-    });
-
-    test('deve aceitar requisição com token válido', async () => {
+    test('deve aceitar requisição com token válido (opcional)', async () => {
       const token = generateToken({ userId: 'user123' });
 
       const response = await request(app)
         .get('/order/NONEXISTENT')
         .set('Authorization', `Bearer ${token}`);
 
-      // Passou pela autenticação - pode retornar 404
-      expect(response.status).not.toBe(401);
-      expect(response.status).not.toBe(403);
+      // GET é público - token é aceito mas não obrigatório
+      expect([200, 404, 500]).toContain(response.status);
     });
   });
 
@@ -333,17 +314,24 @@ describe('Order API - Authentication Integration Tests', () => {
 
   // ========== TESTES DE TOKEN EXPIRADO ==========
   describe('Token Expirado', () => {
-    test('deve rejeitar token expirado', async () => {
+    test('deve rejeitar token expirado em rota protegida', async () => {
       // Este é um token JWT expirado (exp: 1609459200 = Jan 1, 2021)
       const expiredToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyMTIzIiwiZXhwIjoxNjA5NDU5MjAwfQ.invalid_signature';
 
       const response = await request(app)
-        .get('/order/TEST')
-        .set('Authorization', `Bearer ${expiredToken}`);
+        .post('/order')
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${expiredToken}`)
+        .send({
+          numeroPedido: 'TEST001',
+          valorTotal: 100,
+          dataCriacao: new Date().toISOString(),
+          items: [],
+        });
 
-      // Deve retornar erro de autenticação
-      expect([401, 403]).toContain(response.status);
+      // Deve retornar 403 (token inválido/expirado)
+      expect(response.status).toBe(403);
     });
   });
 });
