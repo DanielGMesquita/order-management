@@ -34,7 +34,9 @@ const validateCreateOrder = [
     .isArray()
     .withMessage('items deve ser um array')
     .notEmpty()
-    .withMessage('items não pode estar vazio'),
+    .withMessage('items não pode estar vazio')
+    .custom(items => items.length > 0)
+    .withMessage('items deve conter pelo menos um item'),
     
   body('items.*.idItem')
     .notEmpty()
