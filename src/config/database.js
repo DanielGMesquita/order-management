@@ -48,8 +48,20 @@ const sync = async (options = {}) => {
   }
 };
 
+// Fecha a conexão com o banco de dados
+const close = async () => {
+  try {
+    await sequelize.close();
+    console.log('✓ Conexão com banco de dados fechada');
+  } catch (error) {
+    console.error('✗ Erro ao fechar conexão:', error.message);
+    throw error;
+  }
+};
+
 export default {
   sequelize,
   authenticate,
   sync,
+  close,
 };
