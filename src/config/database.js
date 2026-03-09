@@ -3,7 +3,7 @@
  * Arquivo de configuração do Sequelize para conexão com PostgreSQL
  */
 
-const { Sequelize } = require('sequelize');
+import { Sequelize } from 'sequelize';
 require('dotenv').config();
 
 // Configuração da conexão com PostgreSQL
@@ -25,4 +25,4 @@ const sequelize = new Sequelize(
   }
 );
 
-module.exports = sequelize;
+export default sequelize;

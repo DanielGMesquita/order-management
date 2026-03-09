@@ -3,8 +3,8 @@
  * Arquivo de definição do modelo de pedidos para o Sequelize
  */
 
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database';
 
 const Order = sequelize.define('Order', {
   orderId: {
@@ -38,4 +38,4 @@ const Order = sequelize.define('Order', {
   comment: 'Tabela de pedidos',
 });
 
-module.exports = Order;
+export default Order;

@@ -4,8 +4,8 @@
  */
 
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Order = require('./Order');
+const sequelize = require('../config/database').default;
+const Order = require('./Order').default;
 
 const Item = sequelize.define('Item', {
     id: {
