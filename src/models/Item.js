@@ -4,8 +4,8 @@
  */
 
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/database';
-import Order from './Order';
+import sequelize from '../config/database.js';
+import Order from './Order.js';
 
 const Item = sequelize.define('Item', {
     id: {

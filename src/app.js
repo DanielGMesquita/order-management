@@ -1,7 +1,7 @@
 import express from "express";
 import pkg from "body-parser";
-import router from "./routes/router.js";
-import db from "./database/database.js"
+import router from "./routes/orderRoutes.js";
+import db from "./config/database.js"
 
 const app = express();
 const { json, urlencoded } = pkg;
