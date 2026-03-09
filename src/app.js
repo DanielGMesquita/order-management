@@ -2,6 +2,8 @@ import express from "express";
 import pkg from "body-parser";
 import router from "./routes/orderRoutes.js";
 import db from "./config/database.js"
+import { serve, setup } from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
 
 export const app = express();
 const { json, urlencoded } = pkg;
@@ -26,3 +28,14 @@ if (process.env.NODE_ENV !== 'test') {
     }
   })();
 }
+
+// Documentação Swagger
+app.use('/api-docs', serve);
+app.get('/api-docs', setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  swaggerOptions: {
+    docExpansion: 'list',
+    filter: true,
+    showRequestHeaders: true,
+  },
+}));
