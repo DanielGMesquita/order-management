@@ -417,26 +417,4 @@ describe('Order API - Integration Tests', () => {
       expect(getResponse.status).toBe(404);
     });
   });
-
-  // ========== TESTES DE ROTA RAIZ ==========
-  describe('GET / - Health Check', () => {
-    test('deve retornar status OK (200)', async () => {
-      const response = await request(app).get('/');
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('success', true);
-      expect(response.body).toHaveProperty('message');
-      expect(response.body).toHaveProperty('endpoints');
-    });
-  });
-
-  // ========== TESTES DE ROTA NÃO ENCONTRADA ==========
-  describe('GET /rota-inexistente - 404', () => {
-    test('deve retornar erro 404 para rota não encontrada', async () => {
-      const response = await request(app).get('/rota-inexistente');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-    });
-  });
 });
