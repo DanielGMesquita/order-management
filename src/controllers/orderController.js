@@ -1,6 +1,6 @@
 import Order from '../models/Order.js';
 import Item from '../models/Item.js';
-import { mapOrderInputToDatabase, mapItemsInputToDatabase } from '../utils/mappers.js';
+import { mapOrderInputToDatabase, mapItemsInputToDatabase, mapOrderDatabaseToOutput } from '../utils/mappers.js';
 
 /**
  * Cria um novo pedido
@@ -69,6 +69,40 @@ export const listOrders = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Erro ao listar pedidos',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+/**
+ * Obtém um pedido específico
+ * GET /order/:orderId
+ */
+export const getOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findByPk(orderId, {
+      include: [{ model: Item, as: 'items' }],
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: `Pedido ${orderId} não encontrado`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Pedido encontrado',
+      data: mapOrderDatabaseToOutput(order),
+    });
+  } catch (error) {
+    console.error('Erro ao obter pedido:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao obter pedido',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

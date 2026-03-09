@@ -1,9 +1,10 @@
 import express from 'express';
-import { createOrder, listOrders } from '../controllers/orderController.js';
+import { createOrder, listOrders, getOrder } from '../controllers/orderController.js';
 
 const router = express.Router();
 // Rota para criar um novo pedido
-router.post('/orders', createOrder);
-router.get('/orders/list', listOrders);
+router.post('/order', createOrder);
+router.get('/order/list', listOrders);
+router.get('/order/:orderId', getOrder);
 
 export default router;
