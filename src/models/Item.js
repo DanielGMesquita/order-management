@@ -3,9 +3,9 @@
  * Define o esquema da tabela de itens de pedidos
  */
 
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database').default;
-const Order = require('./Order').default;
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database';
+import Order from './Order';
 
 const Item = sequelize.define('Item', {
     id: {
@@ -73,4 +73,4 @@ Item.belongsTo(Order, {
     as: 'order',
 })
 
-module.exports = Item;
+export default Item;
