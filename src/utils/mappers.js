@@ -31,7 +31,38 @@ const mapItemsInputToDatabase = (items, orderId) => {
   }));
 };
 
+/**
+ * Mapeia dados do banco para formato de saída
+ * @param {Object} orderData - Dados da ordem do banco de dados
+ * @returns {Object} Dados formatados para resposta
+ */
+const mapOrderDatabaseToOutput = (orderData) => {
+  const plainOrder = orderData.toJSON ? orderData.toJSON() : orderData;
+  
+  return {
+    orderId: plainOrder.orderId,
+    value: parseFloat(plainOrder.value),
+    creationDate: plainOrder.creationDate,
+    items: Array.isArray(plainOrder.items) ? mapItemsDatabaseToOutput(plainOrder.items) : [],
+  };
+};
+
+/**
+ * Mapeia itens do banco para formato de saída
+ * @param {Array} items - Array de itens
+ * @returns {Array} Itens formatados
+ */
+const mapItemsDatabaseToOutput = (items) => {
+  return items.map(item => ({
+    productId: item.productId,
+    quantity: item.quantity,
+    price: parseFloat(item.price),
+  }));
+};
+
 export {
   mapOrderInputToDatabase,
   mapItemsInputToDatabase,
+  mapOrderDatabaseToOutput,
+  mapItemsDatabaseToOutput,
 };

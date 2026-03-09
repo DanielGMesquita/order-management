@@ -46,3 +46,30 @@ export const createOrder = async (req, res) => {
     });
   }
 };
+
+/**
+ * Lista todos os pedidos
+ * GET /order/list
+ */
+export const listOrders = async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      include: [{ model: Item, as: 'items' }],
+      order: [['createdAt', 'DESC']],
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Pedidos listados com sucesso',
+      data: orders.map(mapOrderDatabaseToOutput),
+      count: orders.length,
+    });
+  } catch (error) {
+    console.error('Erro ao listar pedidos:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao listar pedidos',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};

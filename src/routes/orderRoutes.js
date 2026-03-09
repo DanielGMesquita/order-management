@@ -5,5 +5,6 @@ const router = express.Router();
 
 // Rota para criar um novo pedido
 router.post('/orders', createOrder);
+router.get('/orders/list', listOrders);
 
 export default router;
