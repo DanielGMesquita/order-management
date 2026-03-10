@@ -1,15 +1,16 @@
-import express from "express";
-import pkg from "body-parser";
+import express from 'express';
+import dotenv from 'dotenv';
 import router from "./routes/orderRoutes.js";
 import db from "./config/database.js"
 import { serve, setup } from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 
-export const app = express();
-const { json, urlencoded } = pkg;
+dotenv.config();
 
-app.use(json());
-app.use(urlencoded({extended: true}));
+export const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 app.use("/", router);
 
 // Inicializa o banco de dados e inicia o servidor (apenas se não for em modo de testes)
@@ -39,3 +40,21 @@ app.get('/api-docs', setup(swaggerSpec, {
     showRequestHeaders: true,
   },
 }));
+
+// Middleware de tratamento de urls não encontradas
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: 'Endpoint não encontrado',
+  });
+});
+
+// Middleware de tratamento de erros global
+app.use((err, req, res, next) => {
+  console.error('Erro não tratado:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Erro interno do servidor',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+  });
+});
