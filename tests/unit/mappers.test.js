@@ -5,7 +5,7 @@
 
 import { mapOrderInputToDatabase, mapItemsInputToDatabase, mapOrderDatabaseToOutput, mapItemsDatabaseToOutput } from '../../src/utils/mappers.js';
 
-import { validOrderPayload, expectedOrderResponse } from '../fixtures/orderFixtures.js';
+import { validOrderPayload, expectedOrderResponse } from '../fixtures/OrderFixtures.js';
 
 describe('Data Mappers - Unit Tests', () => {
   describe('mapOrderInputToDatabase', () => {

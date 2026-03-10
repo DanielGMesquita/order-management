@@ -8,14 +8,19 @@ import { app } from '../../src/app.js';
 import db from '../../src/config/database.js';
 import Order from '../../src/models/Order.js';
 import Item from '../../src/models/Item.js';
-import { validOrderPayload, validOrderPayload2, multipleItemsOrderPayload, invalidOrderPayloads, updateOrderPayload } from '../fixtures/orderFixtures.js';
+import { generateToken } from '../../src/middleware/auth.js';
+import { validOrderPayload, validOrderPayload2, multipleItemsOrderPayload, invalidOrderPayloads, updateOrderPayload } from '../fixtures/OrderFixtures.js';
 
 describe('Order API - Integration Tests', () => {
+  let token;
+
   // Setup e Teardown
   beforeAll(async () => {
     try {
       await db.authenticate();
       await db.sync({ alter: true });
+      // Gera um token para testes autenticados
+      token = generateToken({ userId: 'test_user', role: 'admin' });
     } catch (error) {
       console.error('Erro ao conectar ao banco de dados:', error.message);
       throw error;
@@ -38,6 +43,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
 
       expect(response.status).toBe(201);
@@ -52,6 +58,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.missingNumeroPedido);
 
       expect(response.status).toBe(400);
@@ -63,6 +70,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.missingValorTotal);
 
       expect(response.status).toBe(400);
@@ -73,6 +81,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.missingDataCriacao);
 
       expect(response.status).toBe(400);
@@ -83,6 +92,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.missingItems);
 
       expect(response.status).toBe(400);
@@ -93,6 +103,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.invalidDataCriacao);
 
       expect(response.status).toBe(400);
@@ -103,6 +114,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.negativeValorTotal);
 
       expect(response.status).toBe(400);
@@ -113,6 +125,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.negativeQuantidadeItem);
 
       expect(response.status).toBe(400);
@@ -123,6 +136,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(invalidOrderPayloads.negativeValorItem);
 
       expect(response.status).toBe(400);
@@ -134,12 +148,14 @@ describe('Order API - Integration Tests', () => {
       await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
 
       // Tenta criar duplicado
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
 
       expect(response.status).toBe(409);
@@ -151,6 +167,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(multipleItemsOrderPayload);
 
       expect(response.status).toBe(201);
@@ -163,6 +180,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
 
       const data = response.body.data;
@@ -181,6 +199,7 @@ describe('Order API - Integration Tests', () => {
       await request(app)
         .post('/order')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
     });
 
@@ -237,10 +256,12 @@ describe('Order API - Integration Tests', () => {
       // Cria dois pedidos
       await request(app)
         .post('/order')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
 
       await request(app)
         .post('/order')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload2);
 
       const response = await request(app).get('/order/list');
@@ -254,6 +275,7 @@ describe('Order API - Integration Tests', () => {
     test('deve retornar pedidos com todos os campos', async () => {
       await request(app)
         .post('/order')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
 
       const response = await request(app).get('/order/list');
@@ -267,12 +289,14 @@ describe('Order API - Integration Tests', () => {
     test('deve retornar pedidos em ordem decrescente de criação', async () => {
       await request(app)
         .post('/order')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
       await request(app)
         .post('/order')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload2);
 
       const response = await request(app).get('/order/list');
@@ -287,6 +311,7 @@ describe('Order API - Integration Tests', () => {
     beforeEach(async () => {
       await request(app)
         .post('/order')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
     });
 
@@ -294,6 +319,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .put(`/order/${validOrderPayload.numeroPedido}`)
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(updateOrderPayload);
 
       expect(response.status).toBe(200);
@@ -306,6 +332,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .put('/order/INEXISTENTE')
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(updateOrderPayload);
 
       expect(response.status).toBe(404);
@@ -318,6 +345,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .put(`/order/${validOrderPayload.numeroPedido}`)
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(updatePayload);
 
       expect(response.status).toBe(200);
@@ -338,6 +366,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .put(`/order/${validOrderPayload.numeroPedido}`)
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(updatePayload);
 
       expect(response.status).toBe(200);
@@ -350,6 +379,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .put(`/order/${validOrderPayload.numeroPedido}`)
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(updateOrderPayload);
 
       expect(response.status).toBe(200);
@@ -364,6 +394,7 @@ describe('Order API - Integration Tests', () => {
       const response = await request(app)
         .put(`/order/${validOrderPayload.numeroPedido}`)
         .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`)
         .send(updatePayload);
 
       expect(response.status).toBe(200);
@@ -376,11 +407,14 @@ describe('Order API - Integration Tests', () => {
     beforeEach(async () => {
       await request(app)
         .post('/order')
+        .set('Authorization', `Bearer ${token}`)
         .send(validOrderPayload);
     });
 
     test('deve deletar um pedido existente (200)', async () => {
-      const response = await request(app).delete(`/order/${validOrderPayload.numeroPedido}`);
+      const response = await request(app)
+        .delete(`/order/${validOrderPayload.numeroPedido}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -388,7 +422,9 @@ describe('Order API - Integration Tests', () => {
     });
 
     test('deve retornar erro 404 ao deletar pedido inexistente', async () => {
-      const response = await request(app).delete('/order/INEXISTENTE');
+      const response = await request(app)
+        .delete('/order/INEXISTENTE')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
@@ -396,7 +432,9 @@ describe('Order API - Integration Tests', () => {
 
     test('deve deletar pedido e seus itens', async () => {
       // Deleta o pedido
-      const deleteResponse = await request(app).delete(`/order/${validOrderPayload.numeroPedido}`);
+      const deleteResponse = await request(app)
+        .delete(`/order/${validOrderPayload.numeroPedido}`)
+        .set('Authorization', `Bearer ${token}`);
       expect(deleteResponse.status).toBe(200);
 
       // Verifica que não existe mais
@@ -410,7 +448,9 @@ describe('Order API - Integration Tests', () => {
       expect(getResponse.body.data.items.length).toBeGreaterThan(0);
 
       // Deleta pedido
-      await request(app).delete(`/order/${validOrderPayload.numeroPedido}`);
+      await request(app)
+        .delete(`/order/${validOrderPayload.numeroPedido}`)
+        .set('Authorization', `Bearer ${token}`);
 
       // Verifica que pedido foi deletado
       getResponse = await request(app).get(`/order/${validOrderPayload.numeroPedido}`);

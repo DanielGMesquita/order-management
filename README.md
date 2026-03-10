@@ -1,6 +1,6 @@
 # 📦 Order Management API
 
-Uma API REST robusta e segura para gerenciamento de pedidos, desenvolvida com Express.js, PostgreSQL e autenticação JWT.
+Uma API REST para gerenciamento de pedidos, desenvolvida com Express.js, PostgreSQL e autenticação JWT.
 
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
 ![Express.js](https://img.shields.io/badge/Express.js-5+-blue)
@@ -124,14 +124,14 @@ order-management/
 │   │   ├── database.js           # Configuração Sequelize
 │   │   └── swagger.js            # Documentação Swagger
 │   ├── controllers/
-│   │   └── orderController.js    # Lógica dos pedidos
+│   │   └── OrderController.js    # Lógica dos pedidos
 │   ├── middleware/
 │   │   └── auth.js               # JWT authentication
 │   ├── models/
 │   │   ├── Order.js              # Modelo de pedido
 │   │   └── Item.js               # Modelo de item
 │   ├── routes/
-│   │   └── orderRoutes.js        # Rotas da API
+│   │   └── OrderRoutes.js        # Rotas da API
 │   └── utils/
 │       ├── mappers.js            # Mapeamento de dados
 │       └── validators.js         # Validação de dados

@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import router from "./routes/orderRoutes.js";
+import router from "./routes/router.js";
 import db from "./config/database.js"
 import { serve, setup } from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
