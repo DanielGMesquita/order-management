@@ -1,8 +1,23 @@
 import express from 'express';
 import { createOrder, listOrders, getOrder, updateOrder, deleteOrder } from '../controllers/orderController.js';
 import { validateCreateOrder, validateOrderId, handleValidationErrors } from '../utils/validators.js';
+import { authenticateToken, generateToken } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Health check - sem autenticação
+router.get('/', (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: 'API está operacional',
+    endpoints: {
+      post: '/order (requer autenticação)',
+      get: ['/order/list (sem autenticação)', '/order/:orderId (sem autenticação)'],
+      put: '/order/:orderId (requer autenticação)',
+      delete: '/order/:orderId (requer autenticação)',
+    },
+  });
+});
 
 // Rotas de pedidos
 
@@ -13,6 +28,8 @@ const router = express.Router();
  *     summary: Cria um novo pedido
  *     tags:
  *       - Pedidos
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -58,12 +75,16 @@ const router = express.Router();
  *         description: Pedido criado com sucesso
  *       400:
  *         description: Erro na validação dos dados
+ *       401:
+ *         description: Token não fornecido
+ *       403:
+ *         description: Token inválido ou expirado
  *       409:
  *         description: Pedido já existe
  *       500:
  *         description: Erro do servidor
  */
-router.post('/order', validateCreateOrder, handleValidationErrors, createOrder);
+router.post('/order', authenticateToken, validateCreateOrder, handleValidationErrors, createOrder);
 
 /**
  * @swagger
@@ -111,6 +132,8 @@ router.get('/order/:orderId', validateOrderId, handleValidationErrors, getOrder)
  *     summary: Atualiza um pedido
  *     tags:
  *       - Pedidos
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -137,12 +160,16 @@ router.get('/order/:orderId', validateOrderId, handleValidationErrors, getOrder)
  *     responses:
  *       200:
  *         description: Pedido atualizado com sucesso
+ *       401:
+ *         description: Token não fornecido
+ *       403:
+ *         description: Token inválido ou expirado
  *       404:
  *         description: Pedido não encontrado
  *       500:
  *         description: Erro do servidor
  */
-router.put('/order/:orderId', validateOrderId, handleValidationErrors, updateOrder);
+router.put('/order/:orderId', authenticateToken, validateOrderId, handleValidationErrors, updateOrder);
 
 /**
  * @swagger
@@ -151,6 +178,8 @@ router.put('/order/:orderId', validateOrderId, handleValidationErrors, updateOrd
  *     summary: Deleta um pedido
  *     tags:
  *       - Pedidos
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -161,11 +190,89 @@ router.put('/order/:orderId', validateOrderId, handleValidationErrors, updateOrd
  *     responses:
  *       200:
  *         description: Pedido deletado com sucesso
+ *       401:
+ *         description: Token não fornecido
+ *       403:
+ *         description: Token inválido ou expirado
  *       404:
  *         description: Pedido não encontrado
  *       500:
  *         description: Erro do servidor
  */
-router.delete('/order/:orderId', validateOrderId, handleValidationErrors, deleteOrder);
+router.delete('/order/:orderId', authenticateToken, validateOrderId, handleValidationErrors, deleteOrder);
+
+// ========== AUTENTICAÇÃO ==========
+
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Gera token JWT para acesso a endpoints protegidos
+ *     tags:
+ *       - Autenticação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "testuser"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "test@example.com"
+ *     responses:
+ *       200:
+ *         description: Token gerado com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       500:
+ *         description: Erro do servidor
+ */
+router.post('/auth/login', (req, res) => {
+  try {
+    const { username, email } = req.body;
+
+    // Simples validação
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username é obrigatório',
+      });
+    }
+
+    // Cria payload do token
+    const payload = {
+      userId: `user-${Date.now()}`,
+      username: username || 'user',
+      email: email || `${username}@example.com`,
+      role: 'admin',
+      loginTime: new Date().toISOString(),
+    };
+
+    // Gera token
+    const token = generateToken(payload);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Token gerado com sucesso',
+      data: {
+        token,
+        expiresIn: process.env.JWT_EXPIRATION || '24h',
+        user: payload,
+      },
+    });
+  } catch (error) {
+    console.error('Erro ao gerar token:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao gerar token',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+});
 
 export default router;
