@@ -1,5 +1,5 @@
 import express from 'express';
-import { createOrder, listOrders, getOrder, updateOrder, deleteOrder } from '../controllers/orderController.js';
+import { createOrder, listOrders, getOrder, updateOrder, deleteOrder } from '../controllers/OrderController.js';
 import { validateCreateOrder, validateOrderId, handleValidationErrors } from '../utils/validators.js';
 import { authenticateToken, generateToken } from '../middleware/auth.js';
 
